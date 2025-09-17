@@ -3,18 +3,33 @@ use nexus_sdk::{
     stwo::seq::Stwo,
     ByGuestCompilation, Local, Prover, Verifiable, Viewable,
 };
+use tracing::{info, info_span};
 
 const PACKAGE: &str = "guest";
 
 fn main() {
-    println!("Compiling guest program...");
+    // Initialize pretty logging
+    tracing_subscriber::fmt()
+        .with_env_filter("info")
+        .with_ansi(true)
+        .with_target(false)
+        .with_thread_ids(false)
+        .with_thread_names(false)
+        .init();
+
+    info!("🚀 Starting Nexus zkVM Hello World");
+    
+    let _span = info_span!("compilation").entered();
+    info!("📦 Compiling guest program...");
     let mut prover_compiler = Compiler::<CargoPackager>::new(PACKAGE);
     let prover: Stwo<Local> =
         Stwo::compile(&mut prover_compiler).expect("failed to compile guest program");
+    info!("✅ Guest program compiled successfully!");
 
     let elf = prover.elf.clone(); // save elf for use with test verification
 
-    print!("Proving execution of vm... ");
+    let _span = info_span!("proving").entered();
+    info!("🔍 Proving execution of VM...");
     let (view, proof) = prover
         .prove_with_input::<u32, u32>(&3, &5)
         .expect("failed to prove program"); // x = 5, y = 3
@@ -26,13 +41,19 @@ fn main() {
         .expect("failed to retrieve public output");
     assert_eq!(output, 15); // z = 15
 
-    println!("output is {}!", output);
-    println!(
-        ">>>>> Logging\n{}<<<<<",
-        view.logs().expect("failed to retrieve debug logs").join("")
-    );
+    info!("🎯 Program output: {}", output);
+    
+    // Pretty print the guest logs
+    let logs = view.logs().expect("failed to retrieve debug logs");
+    if !logs.is_empty() {
+        info!("📋 Guest Program Logs:");
+        for log in logs {
+            info!("  └─ {}", log.trim());
+        }
+    }
 
-    print!("Verifying execution...");
+    let _span = info_span!("verification").entered();
+    info!("🔐 Verifying execution...");
     proof
         .verify_expected::<u32, u32>(
             &5,   // x = 5
@@ -43,5 +64,6 @@ fn main() {
         )
         .expect("failed to verify proof");
 
-    println!("  Succeeded!");
+    info!("🎉 Verification succeeded!");
+    info!("✨ zkVM Hello World completed successfully!");
 }

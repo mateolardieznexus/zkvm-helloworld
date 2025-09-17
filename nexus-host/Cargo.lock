@@ -737,6 +737,8 @@ name = "nexus-host"
 version = "0.1.0"
 dependencies = [
  "nexus-sdk",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

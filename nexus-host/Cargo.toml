@@ -5,6 +5,8 @@ edition = "2024"
 
 [dependencies]
 nexus-sdk = { git = "https://github.com/nexus-xyz/nexus-zkvm.git", tag = "0.3.4", version = "0.3.4" }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "ansi"] }
 
 [workspace]
 members = [
